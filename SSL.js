@@ -2,14 +2,6 @@ const crypto = require('crypto');
 const express = require('express');
 var app = express();
 
-// const data = "task 2 kho vl";
-
-// const encrypted = crypto.privateEncrypt(privateKey, Buffer.from(data))
-// const decrypted = crypto.publicDecrypt(publicKey, Buffer.from(encrypted))
-
-// console.log("encryptedData: ", encrypted.toString("base64"))
-// console.log("decryptedData: ", decrypted.toString())
-
 var algorithm = 'aes256';
 var inputEncoding = 'utf8';
 var outputEncoding = 'hex';
@@ -101,6 +93,3 @@ app.get('/cert', function(req, res) {
 app.listen(3000, function() {
     console.log('Listening on port 3000')
 })
-
-
-// console.log("decryptedData: ", decryptedData.toString())
