@@ -11,7 +11,8 @@
   "dependencies": {
     "crypto": "^1.0.1",
     "elliptic": "^6.5.3",
-    "mongoose": "^5.11.8"
+    "mongoose": "^5.11.8",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "bcrypt": "^5.0.0",

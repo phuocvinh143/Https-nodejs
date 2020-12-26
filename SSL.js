@@ -1,19 +1,20 @@
-const crypto = require('crypto');
-const express = require('express');
-var app = express();
+const crypto = require('crypto')
+const express = require('express')
+var app = express()
+const bodyParser = require('body-parser')
 
-var algorithm = 'aes256';
-var inputEncoding = 'utf8';
-var outputEncoding = 'hex';
+var algorithm = 'aes256'
+var inputEncoding = 'utf8'
+var outputEncoding = 'hex'
 var ivlength = 16
 
 const getSignatureByInput = (input, key) => {
-    let sign = crypto.createSign('RSA-SHA256');
-    sign.update(input);
-    let signature = sign.sign(key, 'hex');
+    let sign = crypto.createSign('RSA-SHA256')
+    sign.update(input)
+    let signature = sign.sign(key, 'hex')
   
-    return signature;
-};
+    return signature
+}
 
 const getSignatureVerifyResult = (input, _publicKey, signatureSignedByPrivateKey) => {
     const verifier = crypto.createVerify('RSA-SHA256');
@@ -54,6 +55,16 @@ const decrypt = (hexString, key) => {
     return deciphered;
 }
 
+// create key on server
+const {publicKey, privateKey} = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048
+});
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
 app.get('/cert', function(req, res) {
     // server cert
     var cert_encrypted = {
@@ -61,11 +72,6 @@ app.get('/cert', function(req, res) {
         'public_key': 'a',
         'signature': 'b'
     }
-
-    // create key on server
-    const {publicKey, privateKey} = crypto.generateKeyPairSync("rsa", {
-        modulusLength: 2048
-    });
 
     // export public key
     let privatePem = privateKey.export({ format: 'pem', type:  'pkcs1'});
@@ -77,17 +83,16 @@ app.get('/cert', function(req, res) {
 
     // sign
     cert_encrypted.public_key = _publicKey;
-    cert_encrypted.signature = getSignatureByInput(cert_encrypted.host, _privateKey);
-
-    // client take the public key of server and encrypt a symmetric key by public key and send it back to server
-    client_symmetric_key = "ciw7p02f70000ysjon7gztjn71234567";
-    client_key_encrypted = crypto.publicEncrypt(publicKey, Buffer.from(client_symmetric_key))
-    client_req = encrypt("B1805835", client_symmetric_key);
-
-    // decrypted data from encrypted data and encrypted key
-    console.log(decrypt(client_req, crypto.privateDecrypt(privateKey, client_key_encrypted).toString()));
+    cert_encrypted.signature = getSignatureByInput(cert_encrypted.host + cert_encrypted.public_key, _privateKey);
 
     res.json(cert_encrypted);
+})
+
+app.post('/ans', (req, res) => {
+    let client_key = crypto.privateDecrypt(privateKey, Buffer.from(req.body.key))
+    // log on server data has been taken from client within key send with
+    console.log(decrypt(req.body.text, client_key.toString('ascii')))
+    res.send('OK')
 })
 
 app.listen(3000, function() {
